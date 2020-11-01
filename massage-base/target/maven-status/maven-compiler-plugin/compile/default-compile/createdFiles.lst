@@ -1,0 +1,2 @@
+com\massagebase\exception\ApiException.class
+com\massagebase\MyControllerAdvice.class

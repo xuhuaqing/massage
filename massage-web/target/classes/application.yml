@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: massage
+  datasource:
+    driverClassName: com.mysql.cj.jdbc.Driver
+  profiles:
+   active: beautiful_2
+   #active: beautiful_1
+  thymeleaf:
+    cache: false
+    mode: LEGACYHTML5
+    encoding: UTF-8
+    servlet:
+      content-type: text/html
+  restart:
+    enabled: true
+  devtools:
+    restart:
+      enabled: true  #设置开启热部署
+      additional-paths: src/main/java #重启目录
+      exclude: WEB-INF/**
+  freemarker:
+    cache: false
+  mvc:
+    view:
+      prefix: /massage/resources/templates/
+      suffix: .html
+server:
+  servlet:
+    context-path: /massage
+mybatis:
+  mapperLocations: classpath*:com/massagedao/mapper/xml/*Mapper.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+logging:
+  level:
+    org:
+      mybatis: debug
+    com:
+      apche:
+        ibatis: debug
+    java:
+      sql: debug
+

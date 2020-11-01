@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>设备添加</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="../../static/layuiadmin/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="../../static/layuiadmin/style/admin.css" media="all">
+</head>
+<body>
+<blockquote class="layui-elem-quote"></blockquote>
+<!--<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header"></div>
+                <form class="layui-form layui-form-pane">
+                </form>
+                <div class="layui-card-body">
+                    <table class="layui-hide" id="test-table-autowidth"></table>
+                    <div id="test-laypage-demo7"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>-->
+<!--输入单词框和提交按钮-->
+<form class="layui-form" action="" id="formDe">
+
+    <p><input id="businessId1" name="businessId1" type="hidden">
+    <div class="layui-form-item">
+        <label class="layui-form-label">设备所属商家:</label>
+        <div class="layui-input-inline">
+            <select name="userName" id="cc1" lay-filter="cd1"></select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">设备号:</label>
+        <div class="layui-input-inline">
+            <input type="text" id="equipmentId" name="equipmentId" required lay-verify="required" placeholder="请输入设备号" autocomplete="off"
+                   class="layui-input" readonly>
+        </div>
+        <label class="layui-form-label">记录开始时间:</label>
+        <div class="layui-input-inline">
+            <input type="text" name="startTime" id="startTime" lay-verify="date" placeholder="yyyy-MM-dd" autocomplete="off" class="layui-input">
+
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">设备自定义模式时长:</label>
+        <div class="layui-input-inline">
+            <input type="text" id="customTime" name="customTime" required lay-verify="required" placeholder="设备自定义模式时长" autocomplete="off"
+                   class="layui-input" onkeyup="value=value.replace(/[^\d]/g,'') " ng-pattern="/[^a-zA-Z]/">
+        </div>
+        <label class="layui-form-label">每天体验时长设置:</label>
+        <div class="layui-input-inline">
+            <input type="text" id="experienceTime"  name="experienceTime" required lay-verify="required" placeholder="每天体验时长设置" autocomplete="off"
+                   class="layui-input" onkeyup="value=value.replace(/[^\d]/g,'') " ng-pattern="/[^a-zA-Z]/">
+        </div>
+    </div>
+
+
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="user_save_submit">立即提交</button>
+        </div>
+    </div>
+</form>
+<script src="../../static/layuiadmin/layui/layui.js"></script>
+<script>
+    layui.config({
+        //静态资源所在路径
+        base: '../../static/layuiadmin/'
+    }).extend({
+        //主入口模块
+        index: 'lib/index'
+    }).use(['form', 'layer', 'jquery', 'laydate', 'upload', 'index'], function () {
+        show();
+        //日期
+        layui.laydate.render({
+            elem: '#startTime'
+        });
+        <!-- 和上边的form关联 -->
+        var form = layui.form;
+        <!--当提交的时候判断-->
+        form.on("submit(user_save_submit)", function (obj) {
+            layui.$.ajax({
+                type: 'POST',
+                url: layui.data(layui.setter.tableName)['admin_host'] + '/admin/user/updEquipment',
+                dataType: 'json',
+                data: obj.field,
+                success: function (resp) {
+                    if ( resp['code'] == 0) {
+                        layer.msg("修改成功", {
+                            offset: '15px',
+                            icon: 1,
+                            time: 2000
+                        });
+                        setTimeout(function () {
+                            window.parent.location.reload();//修改成功后刷新父界面
+                        }, 1000);
+                    } else {
+                        layer.msg(resp['msg'], {
+                            offset: '15px',
+                            icon: 5,
+                            time: 2000
+                        });
+                    }
+                }
+            });
+            return false;
+        })
+    });
+
+    function show() {
+        layui.$.ajax({
+            url: layui.data(layui.setter.tableName)['admin_host'] + '/admin/user/businessList',
+            type: "POST",
+            dataType: "json",
+            success: function (result) {
+                var target = layui.$('#cc1' );
+                var businessId1 = layui.$('#businessId1').val();
+                 target.empty();
+                var data = result.data;
+                console.log("data:"+data);
+                console.log("businessId1:"+businessId1);
+                if (!data) {
+                    layui.form.render('select');
+                    return;
+                }
+                layui.$('<option />').attr('value', '').text('请选择').appendTo(target);
+                layui.$.each(data, function (index, d) {
+                    console.log("businessName:"+d['businessName']);
+
+                    if(d['businessName'] == businessId1){
+                        var op = layui.$('<option selected />').attr('value', d['businessId']).text(d['businessName']);
+                        target.append(op);
+                    }else {
+                        var op = layui.$('<option />').attr('value', d['businessId']).text(d['businessName']);
+                        target.append(op);
+                    }
+                });
+                layui.form.render('select');
+            }
+        });
+    }
+
+</script>
+<script>
+    layui.use('upload', function () {
+        var $ = layui.jquery,
+            upload = layui.upload;
+        //指定允许上传的文件类型
+        upload.render({
+            elem: '#test3'
+            , url: /*layui.data(layui.setter.tableName)['admin_host'] + */'/admin/upload'
+            , accept: 'file'
+            , data: {
+                unitId: function () {
+                    var val = layui.$("#cc2").val();
+                    if (val) {
+                        return val;
+                    } /*else {
+                        layer.msg("请选择模块！", {
+                            offset: '15px',
+                            icon: 1,
+                            time: 2000
+                        });
+                    }*/
+                }
+            }
+            , done: function (res) {
+                document.getElementById("moduleBanner").value = res.data.url;
+                console.log("document.getElementById(\"moduleBanner\"):"+document.getElementById("moduleBanner"));
+                if (Number(res['code']) === 0) {
+                    layer.msg(res['msg'], {
+                        offset: '15px',
+                        icon: 1,
+                        time: 2000
+                    });
+                }
+                if (Number(res['code']) === 1) {
+                    layer.msg(res['msg'], {
+                        offset: '15px',
+                        icon: 5,
+                        time: 2000
+                    });
+                }
+
+            }
+        });
+    });
+    function child(obj,id){
+        console.log(obj);//获取父界面的传值
+        console.log(id);//获取父界面的传值
+        return obj;
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+com\massagebase\CustomOperator.class
+com\massagebase\Expression.class
+com\massagebase\MassageBaseApplicationTests.class
+com\massagebase\CustomOperatorImpl.class

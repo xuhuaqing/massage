@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.massagedao.mapper.BusinessMapper">
+
+    <select id="businessList" resultType="com.massagecommon.entity.BusinessEntity">
+        select user_id as businessId, user_name as businessName from tbl_user
+        where user_type = 1
+        <if test="businessName != null and businessName != ''">
+           and user_name like concat(#{businessName} ,'%')
+        </if>
+        <if test="provincialId != null and provincialId!= ''">
+           and provincial_id = #{provincialId}
+        </if>
+        order by create_time desc
+    </select>
+    <update id="updEquipment">
+        update tbl_equipment
+        <set>
+            start_time = #{equipmentDTO.startTime} ,
+            business_id = #{equipmentDTO.userName} ,
+            experience_time = #{equipmentDTO.experienceTime},
+            custom_time = #{equipmentDTO.customTime},
+            surplus_time = #{equipmentDTO.experienceTime}+#{equipmentDTO.customTime}
+        </set>
+        where equipment_id = #{equipmentDTO.equipmentId}
+    </update>
+    <select id="moneyUnsettled" resultType="java.lang.Double">
+        select sum(price) from tbl_order where order_type = 0 and create_time BETWEEN CONCAT(date_format(CURDATE(), '%Y-%m'),'-01') and CONCAT(date_format(CURDATE(), '%Y-%m'),'-26') and business_id = #{businessId}
+    </select>
+    <select id="findOrder" resultType="com.massagecommon.entity.OrderEntity">
+        select  times,total_times,number_id  ,order_name,order_type,price,DATE_FORMAT(tbl_order.create_time,'%Y-%m-%d') AS create_time,tbl_order.user_name,tbl_order.user_phone,tbl_user.user_name AS s,
+        teacher_id AS teacherId
+        , remarks  , tbl_order.parent_id as parentId from tbl_user , tbl_order
+        where tbl_user.user_id = tbl_order.business_id
+        and business_id = #{businessId}
+        <if test="searchName != null and searchName != ''">
+            and tbl_order.user_name like concat(#{searchName} ,'%')
+        </if>
+        order by tbl_order.create_time desc
+    </select>
+    <select id="findAchievement" resultType="java.lang.Integer">
+        select achievement from tbl_user where user_id = #{businessId,jdbcType=VARCHAR}
+    </select>
+</mapper>

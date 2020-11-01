@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.massagedao.mapper.EquipmentMapper">
+
+    <select id="equipmentList" resultType="com.massagecommon.entity.EquipmentEntity">
+        select `number`,equipment_id as equipmentId
+        ,surplus_time as surplusTime
+        from tbl_equipment
+        where business_id = #{businessId}  and  `status` = 0
+        <if test='type != null and type == "0"'>
+            and add_equipment = 1
+        </if>
+        <if test='type != null and type == "1"'>
+            and add_equipment = 0
+        </if>
+
+    </select>
+    <select id="isdelete" resultType="java.lang.Integer">
+        select `status` from tbl_equipment
+        where equipment_id = #{equipmentId}
+    </select>
+    <select id="isAddEquipment" resultType="java.lang.Integer">
+        select add_equipment from tbl_equipment
+        where equipment_id = #{equipmentId}
+    </select>
+    <update id="addEquipment">
+        update tbl_equipment
+        <set>
+            add_equipment = 0,
+            teacher_id = #{teacherId}
+        </set>
+    where
+        business_id = #{businessId} and equipment_id = #{equipmentId}
+    </update>
+    <select id="equipmentListByUser" resultType="com.massagecommon.entity.EquipmentEntity">
+        select `number`,equipment_id as equipmentId
+        ,surplus_time as surplusTime
+        from tbl_equipment
+        where business_id = #{businessId}
+        <if test='type != null and type == "0"'>
+            and add_equipment = 1
+        </if>
+        <if test='type != null and type == "1"'>
+            and add_equipment = 0
+        </if>
+    </select>
+    <update id="teacherToShop">
+        update tbl_equipment
+        <set>
+            custom_time = #{i},
+            surplus_time = #{i}+experience_time
+        </set>
+        where equipment_id = #{equipmentId}
+    </update>
+
+    <insert id="addOrderRecord">
+      insert into tbl_record
+      <set>
+          id = replace(uuid(),"-",""),
+          number_id = #{numberId},
+          business_id = (select business_id from tbl_order where number_id = #{numberId}),
+          type = (select order_type from tbl_order where number_id = #{numberId} ),
+          price = (select round(price/(total_times+IFNULL((select total_times from tbl_order where parent_id = #{numberId}),0)),2) from tbl_order where number_id = #{numberId}) ,
+          business_name = (select user_name from tbl_user where user_id = (select business_id from tbl_order where number_id = #{numberId})),
+          `time` = (select every_time from tbl_order where number_id = #{numberId})
+      </set>
+    </insert>
+
+    <select id="selectParentId" resultType="java.lang.String">
+        select  parent_id  from tbl_order where number_id =  #{numberId}
+    </select>
+</mapper>

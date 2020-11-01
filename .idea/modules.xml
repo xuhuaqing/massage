@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/massage.iml" filepath="$PROJECT_DIR$/massage.iml" />
+      <module fileurl="file://$PROJECT_DIR$/massage-base/massage-base.iml" filepath="$PROJECT_DIR$/massage-base/massage-base.iml" />
+      <module fileurl="file://$PROJECT_DIR$/massage-common/massage-common.iml" filepath="$PROJECT_DIR$/massage-common/massage-common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/massage-dao/massage-dao.iml" filepath="$PROJECT_DIR$/massage-dao/massage-dao.iml" />
+      <module fileurl="file://$PROJECT_DIR$/massage-service/massage-service.iml" filepath="$PROJECT_DIR$/massage-service/massage-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/massage-web/massage-web.iml" filepath="$PROJECT_DIR$/massage-web/massage-web.iml" />
+    </modules>
+  </component>
+</project>
