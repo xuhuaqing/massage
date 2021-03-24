@@ -4,8 +4,8 @@ spring:
   datasource:
     driverClassName: com.mysql.cj.jdbc.Driver
   profiles:
-   active: beautiful_2
-   #active: beautiful_1
+   #active: beautiful_2
+   active: beautiful_1
   thymeleaf:
     cache: false
     mode: LEGACYHTML5

@@ -1,8 +1,10 @@
 package com.massageweb;
 
 import com.alibaba.fastjson.JSONObject;
+import com.massagecommon.util.RedisUtil;
 import com.massagedao.mapper.EquipmentMapper;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,6 +29,9 @@ class MassageWebApplicationTests {
     private static final String IV_STRING = "16-Bytes--String";
     @Autowired
     private EquipmentMapper equipmentMapper;
+
+    @Autowired
+    private RedisUtil redisUtil;
 
     /**
      * 返回数据
@@ -56,11 +61,21 @@ class MassageWebApplicationTests {
 ////        byte[] m2vcgdn6B7u2tayes = decryptAES("E0CC163C773E55942E1022C9009E23A1FF818D83E15B89C77BEBF70A9038ED48D00E3030105228E7A8E7AE306E6EA99C0B7755150FD4C98BDD82BCCDADB784E6", "mvgnButy422d54dc");
 ////        System.err.println("解密信息："+new String(m2vcgdn6B7u2tayes));
 
-        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+       /* SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         Calendar calendar1=Calendar.getInstance();
         calendar1.set(Calendar.DAY_OF_MONTH, 1);
-        System.out.println("本月第一天: "+sdf.format(calendar1.getTime()));
+        System.out.println("本月第一天: "+sdf.format(calendar1.getTime()));*/
+       /* Object o = redisUtil.get("20591001017");
+        System.err.println(o.toString());*/
+        Integer integer = NumberUtils.createInteger("100");
+        System.err.println(isOdd(integer));
     }
+    public static int isOdd(int n)
+    {
+        return Math.max(n, 0);
+    }
+
+
     public static String Encrypt2(String sSrc, String sKey) throws Exception {
         if (sKey == null) {
             System.out.print("Key为空null");
