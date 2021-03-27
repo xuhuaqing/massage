@@ -34,5 +34,10 @@ public class UserEntity {
 
     private String provincialId;
 
+    /**
+     * 1 是私密账号登陆
+     */
+    private Integer isPrivate;
+
 
 }

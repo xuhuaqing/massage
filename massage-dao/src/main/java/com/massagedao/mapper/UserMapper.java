@@ -138,6 +138,9 @@ public interface UserMapper {
     void updateOpenId(@Param("userEntity") UserEntity userEntity);
 
     void register2(@Param("userEntity") UserEntity userEntity);
+    void register3(@Param("userEntity") UserEntity userEntity);
 
     void giveOrder(@Param("orderEntity")OrderEntity orderEntity,@Param("orderId")String orderId);
+
+    Integer teacherIsExist(@Param("teacherId") String teacherId);
 }

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.massagedao.mapper.ExternalMapper">
+
+    <insert id="addOrderByPlace">
+        insert into tbl_private_order
+        (device_number,scheme_code,scheme_name,total_number,total_time,did_number,state,teacher_id,amount,remarks,user_id,`name`,phone)
+        values
+        (#{externalUser.device_number},#{externalUser.scheme_code},#{externalUser.scheme_name}
+        ,#{externalUser.total_number}
+        ,#{externalUser.total_time}
+        ,#{externalUser.did_number}
+        ,#{externalUser.state}
+        ,#{placeOrderModel.teacherId}
+        ,#{placeOrderModel.amount}
+        ,#{placeOrderModel.remarks}
+        ,#{placeOrderModel.userId}
+        ,#{placeOrderModel.name}
+        ,#{placeOrderModel.phone}
+        )
+    </insert>
+    <insert id="addEquipment">
+        insert into
+        tbl_teacher_eq
+        (teacher_id,business_id,equipment_id)
+        values
+        (#{teacherId},#{businessId},#{equipmentId})
+    </insert>
+    <select id="only" resultType="java.lang.Integer">
+        select count(1) from tbl_private_order
+        where scheme_code = #{scheme_code}
+    </select>
+    <select id="getEqList" resultType="java.lang.String">
+        select equipment_id from tbl_teacher_eq where teacher_id = #{teacherId}
+    </select>
+    <select id="getOrderListByTeacherId" resultType="java.util.Map">
+        select scheme_name,`name`,phone,amount,remarks,teacher_id ,create_time,state from tbl_private_order
+        <where>
+            teacher_id = #{placeOrderModel.teacherId}
+            <if test="placeOrderModel.name != null and placeOrderModel.name != ''">
+                and `name` like concat(#{placeOrderModel.name},'%')
+                or `phone` like concat(#{placeOrderModel.phone},'%')
+            </if>
+            <if test="placeOrderModel.phone != null and placeOrderModel.phone != ''">
+                and `phone` like concat(#{placeOrderModel.phone},'%')
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+    <select id="getBusinessEqList" resultType="java.util.Map">
+        select id,device_number from tbl_private_eq where business_id = #{businessId}
+        and state = 0
+    </select>
+    <select id="getEqListBydeviceNumber" resultType="java.util.Map">
+        select teacher_id from tbl_teacher_eq where equipment_id = #{device_number}
+    </select>
+</mapper>

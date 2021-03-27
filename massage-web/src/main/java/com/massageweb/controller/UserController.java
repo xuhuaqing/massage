@@ -8,8 +8,10 @@ import com.massagecommon.entity.*;
 import com.massagecommon.util.ResponseUtil;
 import com.massagedao.mapper.AdminUserMapper;
 import com.massagedao.mapper.EquipmentMapper;
+import com.massagedao.mapper.ExternalMapper;
 import com.massageservice.service.AdminUserService;
 import com.massageservice.service.EquipmentService;
+import com.massageservice.service.ExternalService;
 import com.massageservice.service.UserService;
 import com.massageweb.common.AuthUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -29,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -52,6 +56,9 @@ public class UserController {
 
     @Autowired
     private AdminUserMapper adminUserMapper;
+
+    @Autowired
+    private ExternalMapper externalService;
 
 
 
@@ -168,9 +175,19 @@ public class UserController {
             if(userEntity1 == null){
                 return ResponseUtil.errorMsgToClient("密码不对！");
             }
-            userEntity1.setType(userEntity.getType());
-            List<EquipmentEntity> equipmentEntities = equipmentMapper.equipmentList(userEntity1.getBusinessId(), 1 + "");
-            userEntity1.setEquipmentId(equipmentEntities.isEmpty()?"":equipmentEntities.get(0).getEquipmentId());
+            if(userEntity.getIsPrivate() == 0){
+                userEntity1.setType(userEntity.getType());
+                List<EquipmentEntity> equipmentEntities = equipmentMapper.equipmentList(userEntity1.getBusinessId(), 1 + "");
+                if(CollectionUtils.isEmpty(equipmentEntities)){
+                    return ResponseUtil.errorMsgToClient("您无正在使用的设备！");
+                }
+                userEntity1.setEquipmentId(equipmentEntities.isEmpty()?"":equipmentEntities.get(0).getEquipmentId());
+            }else if (userEntity.getIsPrivate() == 1){
+                List<Map<String, String>> businessEqList = externalService.getBusinessEqList(userEntity1.getBusinessId());
+                if(CollectionUtils.isEmpty(businessEqList)){
+                    return ResponseUtil.errorMsgToClient("您无正在使用的设备！");
+                }
+            }
             jsonObject.put("userInfo",userEntity1);
         } else if(userEntity.getType() == 2){
             UserEntity userEntity1 = userService.loginTeacher(userEntity);

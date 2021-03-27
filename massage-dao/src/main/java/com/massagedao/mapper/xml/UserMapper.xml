@@ -24,6 +24,13 @@
         value
               (replace(uuid(),'-',''),#{userEntity.userName} ,0,#{userEntity.userPhone} ,'111');
     </insert>
+
+    <insert id="register3">
+        insert into tbl_user
+                (user_id,user_name,user_type,phone,open_id)
+        value
+              (#{userEntity.userId},#{userEntity.userName} ,0,#{userEntity.userPhone} ,'111');
+    </insert>
     <select id="findOrder" resultType="com.massagecommon.entity.UserOrderEntity">
         select number_id as numberId, order_id as orderId, order_name as orderName, order_type as orderType,price as price,total_times as totalTimes,times as times,DATE_FORMAT(create_time,'%Y-%m-%d') as createTime , parent_id AS parentId
         from tbl_order
@@ -118,6 +125,10 @@
                                                                                           and phone like concat('%',right(#{userEntity.userPhone,jdbcType=VARCHAR} , 4))
                                                                                           and user_type = 0
         limit 1
+    </select>
+    <select id="teacherIsExist" resultType="java.lang.Integer">
+        select count(1) from tbl_user
+        where phone = #{teacherId} and  user_type = 2
     </select>
     <update id="updateOpenId">
         UPDATE tbl_user

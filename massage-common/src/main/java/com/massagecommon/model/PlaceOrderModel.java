@@ -11,9 +11,16 @@ import lombok.Data;
 @Data
 public class PlaceOrderModel {
 
+    private String teacherId;
+    private String userId;
+    private String name;
+    private String phone;
+
     private String schemeId;
 
     private double amount;
 
     private String remarks;
+
+    private Integer page;
 }

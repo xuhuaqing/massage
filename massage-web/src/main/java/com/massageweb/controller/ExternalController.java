@@ -1,23 +1,27 @@
 package com.massageweb.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.massagecommon.constant.MsgConstant;
+import com.massagecommon.entity.EquipmentEntity;
+import com.massagecommon.entity.UserEntity;
 import com.massagecommon.model.ExternalModel;
+import com.massagecommon.model.ExternalUser;
 import com.massagecommon.model.PlaceOrderModel;
 import com.massagecommon.model.UserModel;
 import com.massagecommon.util.HttpRequestUtil;
 import com.massagecommon.util.ResponseUtil;
 import com.massagecommon.util.SignUtils;
 import com.massageservice.service.ExternalService;
+import com.massageservice.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Objects;
-import java.util.Optional;
-import java.util.TreeMap;
-import java.util.UUID;
+import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * @program: massage
@@ -32,6 +36,9 @@ public class ExternalController {
 
     private final static String testUrl = "https://api-ck-test.medlander.com";
 
+
+    @Autowired
+    private UserService userService;
     @Autowired
     private ExternalService externalService;
 
@@ -44,29 +51,56 @@ public class ExternalController {
      */
     @PostMapping("getTeacherOrderByUser")
     public String getTeacherOrderByUser(@RequestBody UserModel userModel) {
-        if (StringUtils.isAllBlank(userModel.getUserName(), userModel.getUserPhone())) {
+        if (StringUtils.isAllBlank(userModel.getUserName())) {
             return ResponseUtil.errorMsgToClient("至少传入一个搜索条件！");
+        }
+        List<String> strings = externalService.getEqList(userModel.getTeacherId());
+        if (CollectionUtils.isEmpty(strings)) {
+            return ResponseUtil.errorMsgToClient("请添加设备！");
         }
         long time = System.currentTimeMillis() / 1000;
         String replace = UUID.randomUUID().toString().replace("-", "");
         String replace1 = UUID.randomUUID().toString().replace("-", "");
         TreeMap<String, Object> params = new TreeMap<>();
-        params.put("name", Objects.isNull(userModel.getUserName())?"":userModel.getUserName());
-        params.put("phone", Objects.isNull(userModel.getUserPhone())?"":userModel.getUserPhone());
-        params.put("state", "1");
-        return getString(time, replace, replace1, params, testUrl+"/jlapi/external/get-user-scheme");
+
+        params.put("name", validateMobilePhone(userModel.getUserName()) ? "" : userModel.getUserName());
+        params.put("phone", validateMobilePhone(userModel.getUserName()) ? userModel.getUserName() : "");
+        params.put("state", "0");
+        String string = getString(time, replace, replace1, params, testUrl + "/jlapi/external/get-user-scheme");
+        Map map = JSON.parseObject(string, Map.class);
+        if (Objects.isNull(map)) {
+            return ResponseUtil.successToClient();
+        }
+        String code = (String) map.get("code");
+        if (!Objects.equals(code, MsgConstant.MSG_000000)) {
+            return string;
+        }
+        Object data = map.get("data");
+        String s = JSON.toJSONString(data);
+        List<ExternalUser> externalUsers = JSON.parseArray(s, ExternalUser.class);
+        ArrayList<ExternalUser> objects = new ArrayList<>();
+        for (ExternalUser externalUser : externalUsers) {
+            if (strings.contains(externalUser.getDevice_number())) {
+                objects.add(externalUser);
+            }
+        }
+        return ResponseUtil.successToClient(objects);
     }
 
-    /** 
-    * @Description: 获取订单详情
-    * @Param:  
-    * @return:  
-    * @Author: wushuang
-    * @Date:  
-    */
+    public static boolean validateMobilePhone(String in) {
+        Pattern pattern = Pattern.compile("^[1]\\d{10}$");
+        return pattern.matcher(in).matches();
+    }
+    /**
+     * @Description: 获取订单详情
+     * @Param:
+     * @return:
+     * @Author: wushuang
+     * @Date:
+     */
     @GetMapping("getOrderDetails/{id}")
-    public String getOrderDetails(@PathVariable String id){
-        log.info("入参id：{}",id);
+    public String getOrderDetails(@PathVariable String id) {
+        log.info("入参id：{}", id);
         if (StringUtils.isAllBlank(id)) {
             return ResponseUtil.errorMsgToClient("id不可为空！");
         }
@@ -74,59 +108,66 @@ public class ExternalController {
         String replace = UUID.randomUUID().toString().replace("-", "");
         String replace1 = UUID.randomUUID().toString().replace("-", "");
         TreeMap<String, Object> params = new TreeMap<>();
-        params.put("scheme_code",id);
-        return getString(time, replace, replace1, params, testUrl+"/jlapi/external/user-scheme-details");
+        params.put("scheme_code", id);
+        return getString(time, replace, replace1, params, testUrl + "/jlapi/external/user-scheme-details");
     }
 
     @GetMapping("cancelOrder/{id}")
-    public String cancelOrder(@PathVariable String id){
-        log.info("入参id：{}",id);
+    public String cancelOrder(@PathVariable String id) {
+        log.info("入参id：{}", id);
         if (StringUtils.isAllBlank(id)) {
             return ResponseUtil.errorMsgToClient("id不可为空！");
         }
-        return orderStatus(id,"3");
+        return orderStatus(id, "3");
     }
 
-    private String orderStatus(String id,String state){
+    private String orderStatus(String id, String state) {
         long time = System.currentTimeMillis() / 1000;
         String replace = UUID.randomUUID().toString().replace("-", "");
         String replace1 = UUID.randomUUID().toString().replace("-", "");
         TreeMap<String, Object> params = new TreeMap<>();
-        params.put("scheme_code",id);
-        params.put("state",state);
-        return getString(time, replace, replace1, params, testUrl+" /jlapi/external/set-user-scheme-state");
+        params.put("scheme_code", id);
+        params.put("state", state);
+        return getString(time, replace, replace1, params, testUrl + "/jlapi/external/set-user-scheme-state");
     }
 
 
     /**
-    * @Description:  确认下单
-    * @Param:
-    * @return:
-    * @Author: wushuang
-    * @Date:
-    */
+     * @Description: 确认下单
+     * @Param:
+     * @return:
+     * @Author: wushuang
+     * @Date:
+     */
     @PostMapping("placeOrder")
-    public String placeOrder(@RequestBody PlaceOrderModel placeOrderModel){
+    public String placeOrder(@RequestBody PlaceOrderModel placeOrderModel) {
         String s = orderStatus(placeOrderModel.getSchemeId(), "1");
-        ExternalModel parse = ExternalModel.parse(s);
-        if (Objects.isNull(parse)) {
+        Map map = JSON.parseObject(s, Map.class);
+        if (Objects.isNull(map)) {
             return ResponseUtil.successToClient();
         }
-        if (!ExternalModel.isSucc(parse.getCode())) {
-            return ResponseUtil.errorMsgToClient(parse.getNote());
+        String code = (String) map.get("code");
+        if (!Objects.equals(code, MsgConstant.MSG_000000)) {
+            return s;
         }
         /**
          * 重新获取一遍订单信息
          */
-        String orderDetails = getOrderDetails(placeOrderModel.getSchemeId());
-        ExternalModel externalModel = ExternalModel.parse(orderDetails);
-        if (Objects.isNull(externalModel)) {
+        long time = System.currentTimeMillis() / 1000;
+        String replace = UUID.randomUUID().toString().replace("-", "");
+        String replace1 = UUID.randomUUID().toString().replace("-", "");
+        TreeMap<String, Object> params = new TreeMap<>();
+        params.put("scheme_code", placeOrderModel.getSchemeId());
+        String orderDetails = getString(time, replace, replace1, params, testUrl + "/jlapi/external/user-scheme-details");
+        Map map2 = JSON.parseObject(orderDetails, Map.class);
+        if (Objects.isNull(map2)) {
             return ResponseUtil.successToClient();
         }
-        if (!ExternalModel.isSucc(externalModel.getCode())) {
-            return ResponseUtil.errorMsgToClient(externalModel.getNote());
+        String code2 = (String) map.get("code");
+        if (!Objects.equals(code2, MsgConstant.MSG_000000)) {
+            return s;
         }
-        return externalService.addOrderByPlace(placeOrderModel,externalModel);
+        return externalService.addOrderByPlace(placeOrderModel, map2.get("data"));
     }
 
     private String getString(long time, String replace, String replace1, TreeMap<String, Object> params, String s2) {
@@ -136,12 +177,70 @@ public class ExternalController {
         log.info("返回的数据--{}", s);
         ExternalModel externalModel = ExternalModel.parse(s);
         if (Objects.isNull(externalModel)) {
-            return ResponseUtil.successToClient();
+            return ResponseUtil.errorMsgToClient("无数据！");
         }
         if (!ExternalModel.isSucc(externalModel.getCode())) {
             return ResponseUtil.errorMsgToClient(externalModel.getNote());
         }
         return ResponseUtil.successToClient(externalModel.getData());
+    }
+
+    /**
+     * @Description: 获取已下单的列表
+     * @Param:
+     * @return:
+     * @Author: wushuang
+     * @Date:
+     */
+    @PostMapping("getOrderListByTeacherId")
+    public String getOrderListByTeacherId(@RequestBody PlaceOrderModel placeOrderModel){
+        if(StringUtils.isBlank(placeOrderModel.getTeacherId())){
+            return ResponseUtil.errorMsgToClient("id不可为空！");
+        }
+        return externalService.getOrderListByTeacherId(placeOrderModel);
+    }
+
+    
+    /** 
+    * @Description: 老师添加设备
+    * @Param:  
+    * @return:  
+    * @Author: wushuang
+    * @Date:  
+    */
+    @PostMapping("addTeacherEq")
+    public String addTeacherEq(@RequestBody  Map<String ,String> map){
+        String businessId = map.get("businessId");
+        String teacherId =  map.get("teacherId");
+        String equipmentId =  map.get("equipmentId");
+        if(StringUtils.isAllBlank(businessId,teacherId,equipmentId)){
+            return ResponseUtil.errorMsgToClient("参数不全！");
+        }
+        return externalService.addEquipment(businessId,teacherId,equipmentId);
+    }
+
+
+    /**
+    * @Description: 获取商家新设备
+    * @Param:
+    * @return:
+    * @Author: wushuang
+    * @Date:
+    */
+    @GetMapping("getBusinessEqList/{businessId}")
+    public String getBusinessEqList(@PathVariable String businessId){
+        return externalService.getBusinessEqList(businessId);
+    }
+    /** 
+    * @Description:  商家登陆 获取设备信息 与 老师绑定信息 
+    * @Param:  
+    * @return:  
+    * @Author: wushuang
+    * @Date:  
+    */
+    @GetMapping("getEqListByBusinessId/{businessId}")
+    public String getEqListByBusinessId(@PathVariable String businessId){
+        return externalService.getEqListByBusinessId(businessId);
     }
 
 
