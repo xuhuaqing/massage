@@ -18,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.NumberUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -67,6 +68,7 @@ public class ExternalController {
         params.put("phone", validateMobilePhone(userModel.getUserName()) ? userModel.getUserName() : "");
         params.put("state", "0");
         String string = getString(time, replace, replace1, params, testUrl + "/jlapi/external/get-user-scheme");
+        log.info("string返回的数据--{}", string);
         Map map = JSON.parseObject(string, Map.class);
         if (Objects.isNull(map)) {
             return ResponseUtil.successToClient();
@@ -163,9 +165,9 @@ public class ExternalController {
         if (Objects.isNull(map2)) {
             return ResponseUtil.successToClient();
         }
-        String code2 = (String) map.get("code");
+        String code2 = (String) map2.get("code");
         if (!Objects.equals(code2, MsgConstant.MSG_000000)) {
-            return s;
+            return orderDetails;
         }
         return externalService.addOrderByPlace(placeOrderModel, map2.get("data"));
     }
@@ -243,5 +245,78 @@ public class ExternalController {
         return externalService.getEqListByBusinessId(businessId);
     }
 
+
+    /** 
+    * @Description: 根据账户名 手机号 获取下单电偶 
+    * @Param:  
+    * @return:  
+    * @Author: wushuang
+    * @Date:  
+    */
+    @GetMapping("getBusinessByUserId/{userName}/{userPhone}")
+    public String getBusinessByUserId(@PathVariable String userName,@PathVariable String userPhone){
+        return externalService.getBusinessByUserId(userName,userPhone);
+    }
+
+    /**
+     * @Description:  根据用户id 获取设备
+     * @Param:
+     * @return:
+     * @Author: wushuang
+     * @Date:
+     */
+    @GetMapping("getEqListByUserId/{userId}")
+    public String getEqListByUserId(@PathVariable String userId){
+        return externalService.getEqListByUserId(userId);
+    }
+
+
+    /**
+    * @Description:  根据用户id 获取设备  type 0 未消耗 1已消耗
+    * @Param:
+    * @return:
+    * @Author: wushuang
+    * @Date:
+    */
+    @GetMapping("getOrderByUserId/{userId}/{type}/{page}")
+    public String getOrderByUserId(@PathVariable String userId,@PathVariable String type,@PathVariable Integer page){
+        return externalService.getOrderByUserId(userId,type,page);
+    }
+
+
+    /**
+    * @Description:  顾客点击我要美丽按钮
+    * @Param:
+    * @return:
+    * @Author: wushuang
+    * @Date:
+    */
+    @GetMapping("woyaomeili/{eqId}/{userId}/{orderId}")
+    public String woyaomeili(@PathVariable String eqId,@PathVariable String userId,@PathVariable String orderId){
+        log.info(eqId);
+        long time = System.currentTimeMillis() / 1000;
+        String replace = UUID.randomUUID().toString().replace("-", "");
+        String replace1 = UUID.randomUUID().toString().replace("-", "");
+        TreeMap<String, Object> params = new TreeMap<>();
+        params.put("device_number", eqId);
+        String orderDetails = getString(time, replace, replace1, params, testUrl + "/jlapi/external/get-device-state");
+        Map map2 = JSON.parseObject(orderDetails, Map.class);
+        if (Objects.isNull(map2)) {
+            return ResponseUtil.errorMsgToClient("设备出现问题！");
+        }
+        String code2 = (String) map2.get("code");
+        if (!Objects.equals(code2, MsgConstant.MSG_000000)) {
+            return orderDetails;
+        }
+        Object data = map2.get("data");
+        String s = JSON.toJSONString(data);
+        log.info("1:"+s);
+        Map map = JSON.parseObject(s, Map.class);
+        Object data1 = map.get("device_state");
+        if(Objects.equals(1,Integer.parseInt(data1.toString()))){
+            return ResponseUtil.errorMsgToClient("设备工作中");
+        }
+        return externalService.woyaomeili(eqId,userId,orderId);
+    }
 
 }

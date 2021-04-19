@@ -38,7 +38,7 @@ zfb-program:
       sort-page-init: shouwang_sort_page_init
       community-post-page-init: shouwang_community_post_page_init
 server:
-  port: 8080
+  port: 8082
 massage:
   TcpService: 3456
   SERVICE_IP: 172.26.122.32

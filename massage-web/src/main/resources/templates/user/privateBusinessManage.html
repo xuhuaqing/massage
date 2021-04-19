@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>商户管理</title>
+    <title>私密护理商户管理</title>
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport"
@@ -20,7 +20,7 @@
                     <i class="layui-icon">&#xe608;</i> 添加
                 </div>
                 <div class="layui-card-body">
-                    <div class="demoTable">
+                    <!--<div class="demoTable">
                         <button type="button" lay-submit="" class="layui-btn layui-btn-warm" id="exportExcel" name="exportExcel">
                             <i class="layui-icon"></i>消耗业绩统计</button>
                         <button type="button" lay-submit="" class="layui-btn layui-btn-warm" id="exportExcel1" name="exportExcel">
@@ -31,14 +31,10 @@
                         <input type="text" class="layui-input" name="date" id="date" placeholder=" ~ "
                                style="width: 300px">
                         <p><input id="id" name="id" type="hidden" >
-                    </form>
+                    </form>-->
                     <table class="layui-hide" id="test-table-autowidth" lay-filter="test-table-autowidth"></table>
                     <script type="text/html" id="barDemo">
-                        <a class="layui-btn layui-btn-mini" lay-event="private">允许登陆麦澜德</a>
-                        <a class="layui-btn layui-btn-mini" lay-event="edit">编辑</a>
                         <a class="layui-btn layui-btn-mini" lay-event="order">订单</a>
-                        <a class="layui-btn layui-btn-mini" lay-event="settle">当月结清</a>
-                        <a class="layui-btn layui-btn-danger layui-btn-mini" lay-event="del">删除</a>
                     </script>
                     <div id="test-lpage"></div>
                 </div>
@@ -243,7 +239,7 @@
         var id = layui.$("#id").val();
         table.render({
             elem: '#test-table-autowidth',
-            url: layui.data(layui.setter.tableName)['admin_host'] + '/admin/user/findBusinessManage?page=' + page + '&pageSize=' + pageSize + '&type=1&agentId='+id,
+            url: layui.data(layui.setter.tableName)['admin_host'] + '/admin/user/findBusinessManage?page=' + page + '&pageSize=' + pageSize + '&type=1&isPrivate=1',
             cellMinWidth: 80,
             method: "POST",
             page: false,
@@ -256,14 +252,14 @@
                     {field: 'phone', title: '商户手机号', align: 'center'},
                     {field: 'password', title: '商户身份码', align: 'center'},
                     {field: 'createTime', title: '创建时间', align: 'center'},
-                    {field: 'achievement', title: '业绩结算', align: 'center',templet:function (d) {
+                    /*{field: 'achievement', title: '业绩结算', align: 'center',templet:function (d) {
                             if(d.achievement == 0){
                                 return "<font style='color: #0088CC'>未结清</font>";
                             }
                             if(d.achievement == 1){
                                 return "<font style='color: #cc0000'>已结清</font>";
                             }
-                        }},
+                        }},*/
                     {fixed: 'right', title: '操作', toolbar: '#barDemo', align: 'center', width: 350}
                 ]
             ],
@@ -361,7 +357,7 @@
                     area: ['100%', '100%'],
                     shadeClose: false, //点击遮罩关闭
                     shade: 0,
-                    content: 'orderList',
+                    content: 'privateOrderList',
                     success: function (layero, index) {
                         var body = layer.getChildFrame('body', index);
                         body.contents().find("#userId").val(userId);
@@ -372,21 +368,6 @@
                     layui.$.ajax({
                         type: 'POST',
                         url: layui.data(layui.setter.tableName)['admin_host'] + '/admin/user/settleBusiness?userId=' + userId,
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded'
-                        },
-                        data: null,
-                        success: function (resp) {
-                            showElement(1, 10);
-                        }
-                    });
-                    layui.layer.close(index);
-                });
-            } else if (obj.event === 'private') {
-                layer.confirm('确认允许吗?', function (index) {
-                    layui.$.ajax({
-                        type: 'POST',
-                        url: layui.data(layui.setter.tableName)['admin_host'] + '/admin/user/updatePrivate?userId=' + userId,
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded'
                         },
@@ -408,7 +389,7 @@
                     area: ['800px', '600px'],
                     shadeClose: false, //点击遮罩关闭
                     shade: 0,
-                    content: 'businessAdd',
+                    content: 'privateBusinessAdd',
                 success: function (layero, index) {
                     var body = layer.getChildFrame('body', index);
                     body.contents().find("#id").val(id);

@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>商户管理</title>
+    <title>私密护理订单查询</title>
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport"
@@ -10,35 +10,44 @@
     <link rel="stylesheet" href="../../static/layuiadmin/layui/css/layui.css" media="all">
     <link rel="stylesheet" href="../../static/layuiadmin/style/admin.css" media="all">
 </head>
+<script type="text/html" id="imgTpl">
+    <div>
+        {{# layui.each(d.businessLicense.split(","), function(index, item){ }}
+        <img src="{{ item }}" style="height:80px" onclick="show_imgs(this)">
+        {{# }); }}
+    </div>
+</script>
 <body>
+<form>
+    <p><input id="userId" name="userId" type="hidden">
+</form>
 <div class="layui-fluid">
     <div class="layui-row layui-col-space15">
         <div class="layui-col-md12">
             <div class="layui-card">
-                <div class="layui-card-header">商户管理</div>
-                <div class="layui-btn" id="btn-add">
-                    <i class="layui-icon">&#xe608;</i> 添加
-                </div>
                 <div class="layui-card-body">
-                    <div class="demoTable">
+                    <div class="layui-card-header">订单查询</div>
+                    <!--<div class="demoTable">
                         <button type="button" lay-submit="" class="layui-btn layui-btn-warm" id="exportExcel" name="exportExcel">
-                            <i class="layui-icon"></i>消耗业绩统计</button>
-                        <button type="button" lay-submit="" class="layui-btn layui-btn-warm" id="exportExcel1" name="exportExcel">
-                            <i class="layui-icon"></i>销售业绩统计</button>
-                    </div>
+                            <i class="layui-icon"></i>导出Excel</button>
+                    </div>-->
                     <form class="layui-form layui-col-md12" style="display: flex;align-items: center">
-                        <label class="layui-form-label"> 起始 -- 结束 </label>
-                        <input type="text" class="layui-input" name="date" id="date" placeholder=" ~ "
-                               style="width: 300px">
-                        <p><input id="id" name="id" type="hidden" >
+                        <div class="layui-card-header">搜索订单名称：</div>
+                        <div class="layui-inline">
+                            <input class="layui-input" name="orderName" id="orderName" autocomplete="off"
+                                   placeholder="搜索订单名称" data-type="reload">
+                        </div>
+                        <div class="layui-card-header">搜索客户名称：</div>
+                        <div class="layui-inline">
+                            <input class="layui-input" name="projectName" id="projectName" autocomplete="off"
+                                   placeholder="搜索客户名称" data-type="reload">
+                        </div>
                     </form>
                     <table class="layui-hide" id="test-table-autowidth" lay-filter="test-table-autowidth"></table>
                     <script type="text/html" id="barDemo">
-                        <a class="layui-btn layui-btn-mini" lay-event="private">允许登陆麦澜德</a>
-                        <a class="layui-btn layui-btn-mini" lay-event="edit">编辑</a>
-                        <a class="layui-btn layui-btn-mini" lay-event="order">订单</a>
-                        <a class="layui-btn layui-btn-mini" lay-event="settle">当月结清</a>
-                        <a class="layui-btn layui-btn-danger layui-btn-mini" lay-event="del">删除</a>
+<!--
+                        <a class="layui-btn layui-btn-danger layui-btn&lt;!&ndash;&ndash;&gt;-mini" lay-event="del">删除</a>
+-->
                     </script>
                     <div id="test-lpage"></div>
                 </div>
@@ -46,6 +55,7 @@
         </div>
     </div>
 </div>
+
 <script src="../../static/layuiadmin/layui/layui.js"></script>
 
 <script>
@@ -62,24 +72,18 @@
         //主入口模块
         index: 'lib/index'
     }).use(['index', 'table', 'laypage', 'form', 'layer', 'laydate','excel'], function () {
-        //执行一个laydate实例
-        layui.laydate.render({
-            elem: '#date'
-            , type: 'date'
-            , range: true
-        });
 
-
-
+        showElement(1, 10,"","");
+        //复选框选中监听,将选中的id 设置到缓存数组,或者删除缓存数组
         layui.table.on('checkbox(test-table-autowidth)', function (obj) {
             if (obj.checked == true) {
                 if (obj.type == 'one') {
-                    gloable_pm_codes.push(obj.data.userId);
+                    gloable_pm_codes.push(obj.data.id);
                     gloable_pm_names.push(obj.data.NAME);
                     gloable_tels.push(obj.data.MOBILE_NO);
                 } else {
                     for (var i = 0; i < table_data.length; i++) {
-                        gloable_pm_codes.push(table_data[i].userId);
+                        gloable_pm_codes.push(table_data[i].id);
                         gloable_pm_names.push(table_data[i].NAME);
                         gloable_tels.push(table_data[i].MOBILE_NO);
                     }
@@ -87,7 +91,7 @@
             } else {
                 if (obj.type == 'one') {
                     for (var i = 0; i < gloable_pm_codes.length; i++) {
-                        if (gloable_pm_codes[i] == obj.data.userId) {
+                        if (gloable_pm_codes[i] == obj.data.id) {
                             gloable_pm_codes.remove(i);
                             gloable_pm_names.remove(i);
                             gloable_tels.remove(i);
@@ -96,7 +100,7 @@
                 } else {
                     for (var i = 0; i < gloable_pm_codes.length; i++) {
                         for (var j = 0; j < table_data.length; j++) {
-                            if (gloable_pm_codes[i] == table_data[j].userId) {
+                            if (gloable_pm_codes[i] == table_data[j].id) {
                                 gloable_pm_codes.remove(i);
                                 gloable_pm_names.remove(i);
                                 gloable_tels.remove(i);
@@ -106,7 +110,7 @@
                 }
             }
         });
-
+        //删除数组自定义函数
         Array.prototype.remove = function (dx) {
             if (isNaN(dx) || dx > this.length) {
                 return false;
@@ -118,74 +122,12 @@
             }
             this.length -= 1
         }
-
-
         var $ = layui.$;
         var layer = layui.layer;
         var excel = layui.excel;
-
-
-        $('#exportExcel1').on('click', function(){
-            if (gloable_pm_codes.length === 0) {
-                layer.msg("请选择商户！", {
-                    offset: '15px',
-                    icon: 5,
-                    time: 2000
-                });
-                return false;
-            }
-            if(gloable_pm_codes.length === 1){
-                gloable_pm_codes =   gloable_pm_codes.join(",1");
-            }else {
-                gloable_pm_codes =   gloable_pm_codes.join(",");
-            }
-            var date = layui.$("#date").val();
-
-            // 模拟从后端接口读取需要导出的数据
-            $.ajax({
-                type: 'POST',
-                url: layui.data(layui.setter.tableName)['admin_host'] + '/admin/user/exportExcelByBusinessManageAchievement' ,
-                dataType: 'json',
-                data: {
-                    "userId":gloable_pm_codes,
-                    "date":date,
-                }
-                ,success(res) {
-                    var data = res.data;
-                    console.log(data);
-                    // 重点！！！如果后端给的数据顺序和映射关系不对，请执行梳理函数后导出
-                    data = excel.filterExportData(data, [
-                        'orderId'
-                        ,'orderName'
-                        ,'type'
-                        ,'price'
-                        ,'totalTimes'
-                        ,'createTime'
-                        ,'businessName'
-                        ,'teacherName'
-                        ,'userName'
-                        ,'remarks'
-                        ,'give'
-                    ]);
-                    // 重点2！！！一般都需要加一个表头，表头的键名顺序需要与最终导出的数据一致
-                    data.unshift({ orderId: "订单号", orderName: "订单名称",type :"订单类型",price: '订单价格',totalTimes: '订单次数',createTime: '创建时间',businessName: '商家名称',teacherName: '老师名称',userName: '顾客名称',remarks: '备注',give:'是否赠送'});
-
-                    var timestart = Date.now();
-                    excel.exportExcel(data, '店铺业绩数据--'+randomn()+'.xlsx', 'xlsx');
-                    location.reload();
-                }
-                ,error() {
-                    layer.alert('获取数据失败，请检查是否部署在本地服务器环境下');
-                }
-            });
-        });
-
-
-
-
         $('#exportExcel').on('click', function(){
             if (gloable_pm_codes.length === 0) {
-                layer.msg("请选择商户！", {
+                layer.msg("请选择订单！", {
                     offset: '15px',
                     icon: 5,
                     time: 2000
@@ -197,33 +139,35 @@
             }else {
                 gloable_pm_codes =   gloable_pm_codes.join(",");
             }
-            var date = layui.$("#date").val();
-
             // 模拟从后端接口读取需要导出的数据
             $.ajax({
                 type: 'POST',
-                url: layui.data(layui.setter.tableName)['admin_host'] + '/admin/user/exportExcelByBusinessManage' ,
+                url: layui.data(layui.setter.tableName)['admin_host'] + '/admin/user/exportExcelByUser' ,
                 dataType: 'json',
                 data: {
-                    "userId":gloable_pm_codes,
-                    "date":date,
+                    "id":gloable_pm_codes
                 }
                 ,success(res) {
                     var data = res.data;
                     console.log(data);
                     // 重点！！！如果后端给的数据顺序和映射关系不对，请执行梳理函数后导出
                     data = excel.filterExportData(data, [
-                        'type'
-                        ,'businessName'
+                        'id'
+                        ,'orderName'
+                        ,'remarks'
                         ,'price'
-                        ,'time'
-                        ,'count'
+                        ,'createTime'
+                        ,'userName'
+                        ,'userPhone'
+                        ,'businessId'
+                        ,'teacherId'
+                        ,'temainingTimes'
                     ]);
                     // 重点2！！！一般都需要加一个表头，表头的键名顺序需要与最终导出的数据一致
-                    data.unshift({ type: "订单类型", businessName: "商家名称",price: '消耗金额',time: '消耗时长（分）',count: '消耗次数'});
+                    data.unshift({ id: "序号", orderName: "订单名称",remarks: '订单类型',price: '价格',createTime: '创建时间',userName: '购买人姓名',userPhone: '购买人手机号',businessId: '商家名称',teacherId: '老师名称',temainingTimes:'剩余次数'});
 
                     var timestart = Date.now();
-                    excel.exportExcel(data, '商家消耗数据--'+randomn()+'.xlsx', 'xlsx');
+                    excel.exportExcel(data, '订单数据--'+randomn()+'.xlsx', 'xlsx');
                     location.reload();
                 }
                 ,error() {
@@ -232,52 +176,48 @@
             });
         });
 
-        showElement(1, 10);
     });
 
-    function showElement(page, pageSize) {
+    function showElement(page, pageSize,orderName,userId,projectName) {
         var table = layui.table,
             laydate = layui.laydate,
             laypage = layui.laypage;
         var adminId = layui.data(layui.setter.tableName)['adminId'];
-        var id = layui.$("#id").val();
+         orderName = layui.$("#orderName").val();
+        projectName = layui.$("#projectName").val();
+          userId = layui.$("#userId").val();
+
         table.render({
             elem: '#test-table-autowidth',
-            url: layui.data(layui.setter.tableName)['admin_host'] + '/admin/user/findBusinessManage?page=' + page + '&pageSize=' + pageSize + '&type=1&agentId='+id,
+            url: layui.data(layui.setter.tableName)['admin_host'] + '/admin/user/findOrder?page=' + page + '&pageSize=' + pageSize + '&orderName=' + orderName + '&userId='+userId+ '&projectName='+projectName + '&isPrivate=1',
             cellMinWidth: 80,
             method: "POST",
             page: false,
             cols: [
                 [
                     {type: 'checkbox',LAY_CHECKED: false, fixed: 'test'},
-                    {field: 'userId', title: '商户ID', align: 'center'},
-                    {field: 'userName', title: '商户名称', align: 'center'},
-                    {field: 'address', title: '商户地址', align: 'center'},
-                    {field: 'phone', title: '商户手机号', align: 'center'},
-                    {field: 'password', title: '商户身份码', align: 'center'},
-                    {field: 'createTime', title: '创建时间', align: 'center'},
-                    {field: 'achievement', title: '业绩结算', align: 'center',templet:function (d) {
-                            if(d.achievement == 0){
-                                return "<font style='color: #0088CC'>未结清</font>";
-                            }
-                            if(d.achievement == 1){
-                                return "<font style='color: #cc0000'>已结清</font>";
-                            }
-                        }},
-                    {fixed: 'right', title: '操作', toolbar: '#barDemo', align: 'center', width: 350}
+                    {field: 'device_number', title: '序号', align: 'center'},
+                    {field: 'scheme_code', title: '订单编号', align: 'center'},
+                    {field: 'scheme_name', title: '订单名称', align: 'center'},
+                    {field: 'amount', title: '价格', align: 'center'},
+                    {field: 'total_number', title: '总次数', align: 'center' ,edit: 'text'},
+                    {field: 'did_number', title: '已使用次数', align: 'center'},
+                    {field: 'create_time', title: '创建时间', align: 'center'},
+                    {field: 'name', title: '购买人姓名', align: 'center',edit: 'text'},
+                    {field: 'phone', title: '购买人手机号', align: 'center'},
+                    {field: 'remarks', title: '备注', align: 'center'},
+                    {fixed: 'right', title: '操作', toolbar: '#barDemo', align: 'center', width: 100}
+
                 ]
             ],
             done: function (res, curr, count) {
-
-
-
                 // 设置换页勾选之前的
                 table_data = res.data;
                 //在缓存中找到PM_CODE ,然后设置data表格中的选中状态
                 //循环所有数据，找出对应关系，设置checkbox选中状态
                 for (var i = 0; i < res.data.length; i++) {
                     for (var j = 0; j < gloable_pm_codes.length; j++) {
-                        if (res.data[i].userId == gloable_pm_codes[j]) {
+                        if (res.data[i].id == gloable_pm_codes[j]) {
                             //这里才是真正的有效勾选
                             res.data[i]["LAY_CHECKED"] = 'true';
                             //找到对应数据改变勾选样式，呈现出选中效果
@@ -293,9 +233,6 @@
                     layui.$(' .layui-table-header th[data-field="0"] input[type="checkbox"]').prop('checked', true);
                     layui.$('.layui-table-header th[data-field="0"] input[type="checkbox"]').next().addClass('layui-form-checked');
                 }
-
-
-
                 laypage.render({
                     elem: 'test-lpage',
                     count: res['count'],
@@ -306,87 +243,133 @@
                         if (first) {
                             return;
                         }
-                        showElement(obj.curr, obj.limit);
+                        showElement(obj.curr, obj.limit,orderName,userId,projectName);
                     }
                 });
             }
 
 
         });
+
+
+        layui.table.on('edit(test-table-autowidth)', function (obj) {
+            var value = obj.value //得到修改后的值
+                , data = obj.data //得到所在行所有键值
+                , field = obj.field; //得到字段
+            layer.confirm('确定修改吗？', function (obj) {
+                //执行 Ajax 后重载
+                layui.$.ajax({
+                    type: 'POST',
+                    url: layui.data(layui.setter.tableName)['admin_host'] + '/admin/user/updateOrder',
+                    data: {
+                        'id': data.id,
+                        'totalTimes': value,
+                        'userName': data.userPhone,
+                        'field' :field
+                    },
+                    success: function (res) {
+                            layer.msg("修改成功", {
+                                offset: '15px',
+                                icon: 1,
+                                time: 2000
+                            });
+                            table.reload('test-table-autowidth');
+                    },
+                    error: function (res) {
+                        console.log("error"),
+                            layer.msg("error")
+
+                    }
+                })
+
+            });
+        })
+
+
+
+
+
+
+
         layui.table.on('tool(test-table-autowidth)', function (obj) {
             var data = obj.data;
-            var userId = data.userId;
-            var userName = data.userName;
-            var address = data.address;
-            var phone = data.phone;
-            var password = data.password;
+            var id = data.id;
+            var userPhone = data.userPhone;
+            var isMembers = data.isMembers;
+            var starTime = data.starTime;
             if (obj.event === 'del') {
                 layer.confirm('真的删除吗', function (index) {
                     layui.$.ajax({
                         type: 'POST',
-                        url: layui.data(layui.setter.tableName)['admin_host'] + '/admin/user/deleteBusiness?userId=' + userId,
+                        url: layui.data(layui.setter.tableName)['admin_host'] + '/admin/user/deleteOrder?id=' + id,
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded'
                         },
                         data: null,
                         success: function (resp) {
-                            showElement(1, 10);
+                            layer.msg("删除成功", {
+                                offset: '15px',
+                                icon: 1,
+                                time: 2000
+                            },function () {
+                                showElement(1, 10,'','','');
+
+                            });
                         }
                     });
                     layui.layer.close(index);
                 });
-            } else if (obj.event === 'edit') {
+            } else if (obj.event === 'posterManage') {
                 layer.open({
                     type: 2,
-                    title: '修改信息',
+                    title: '广告管理',
                     maxmin: true,
-                    area: ['800px', '600px'],
+                    area: ['900px', '600px'],
                     shadeClose: false, //点击遮罩关闭
                     shade: 0,
-                    content: 'businessUpdate',
+                    content: 'posterManage',
                     success: function (layero, index) {
                         var body = layer.getChildFrame('body', index);
-                        body.contents().find("#userId").val(userId);
-                        body.contents().find("#userName").val(userName);
-                        body.contents().find("#address").val(address);
-                        body.contents().find("#phone").val(phone);
-                        body.contents().find("#password").val(password);
+                        body.contents().find("#id").val(id);
                     }
                 });
-            }else if (obj.event === 'order') {
+            } else if (obj.event === 'subAccount'){
                 layer.open({
                     type: 2,
-                    title: '订单',
+                    title: '子账号',
                     maxmin: true,
-                    area: ['100%', '100%'],
+                    area: ['900px', '600px'],
                     shadeClose: false, //点击遮罩关闭
                     shade: 0,
-                    content: 'orderList',
+                    content: 'subAccount',
                     success: function (layero, index) {
                         var body = layer.getChildFrame('body', index);
-                        body.contents().find("#userId").val(userId);
+                        body.contents().find("#id").val(id);
                     }
                 });
-            }else if (obj.event === 'settle'){
-                layer.confirm('是否确定结清？', function (index) {
-                    layui.$.ajax({
-                        type: 'POST',
-                        url: layui.data(layui.setter.tableName)['admin_host'] + '/admin/user/settleBusiness?userId=' + userId,
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded'
-                        },
-                        data: null,
-                        success: function (resp) {
-                            showElement(1, 10);
-                        }
-                    });
-                    layui.layer.close(index);
+            }else if (obj.event === 'userMember'){
+                layer.open({
+                    type: 2,
+                    title: '会员管理',
+                    maxmin: true,
+                    area: ['900px', '600px'],
+                    shadeClose: false, //点击遮罩关闭
+                    shade: 0,
+                    content: 'userMember',
+                    success: function (layero, index) {
+
+                        var body = layer.getChildFrame('body', index);
+                        body.contents().find("#id").val(id);
+                        body.contents().find("#isMembers").val(isMembers);
+                        body.contents().find("#starTime").val(starTime);
+                        body.contents().find("#endTime").val(endTime);
+                    }
                 });
-            } else if (obj.event === 'private') {
-                layer.confirm('确认允许吗?', function (index) {
+            }else if (obj.event === 'delUser'){
+                layer.confirm('确定要注销该账户吗?', function (index) {
                     layui.$.ajax({
                         type: 'POST',
-                        url: layui.data(layui.setter.tableName)['admin_host'] + '/admin/user/updatePrivate?userId=' + userId,
+                        url: layui.data(layui.setter.tableName)['admin_host'] + '/system/delUser?id=' + id+'&userPhone='+userPhone,
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded'
                         },
@@ -400,25 +383,63 @@
             }
         });
         layui.$('#btn-add').on('click', function () {
-            var id = layui.$("#id").val();
-            layer.open({
+            if(data1 == 5 ){
+                return layer.msg('只允许上传五张轮播图片');
+            }else {
+                layer.open({
                     type: 2,
-                    title: '添加商户',
+                    title: '添加轮播图',
                     maxmin: true,
                     area: ['800px', '600px'],
                     shadeClose: false, //点击遮罩关闭
                     shade: 0,
-                    content: 'businessAdd',
-                success: function (layero, index) {
-                    var body = layer.getChildFrame('body', index);
-                    body.contents().find("#id").val(id);
-                }
+                    content: 'carouselAdd'
                 });
+            }
         });
+
+
+        layui.$("#orderName").bind("input", function (e) {
+            clearTimeout(time);
+            time = setTimeout(function () {
+                var type = layui.$("#orderName").data('type');
+                active[type] ? active[type].call(this) : '';
+            }, 1000);
+        });
+        layui.$("#projectName").bind("input", function (e) {
+            clearTimeout(time);
+            time = setTimeout(function () {
+                var type = layui.$("#projectName").data('type');
+                active[type] ? active[type].call(this) : '';
+            }, 1000);
+        });
+        var active = {
+            reload: function () {
+                var orderName = layui.$("#orderName").val();
+                var projectName = layui.$("#projectName").val();
+                var userId = layui.$("#userId").val();
+                //执行重载
+                layui.table.reload('test-table-autowidth', {
+                    url: layui.data(layui.setter.tableName)['admin_host'] + '/admin/user/findOrder',
+                    method: 'POST'
+                    , where: { //类似于 data
+                        orderName: orderName,
+                        userId: userId,
+                        projectName: projectName,
+                        page: 1,
+                        pageSize: 10,
+                        isPrivate : 1
+                    }
+                });
+            }
+        };
+
+
+
     }
 
-    function show_img(t) {
-        var t = layui.$(t).find("img");
+    function show_imgs(t) {
+        var t = layui.$(t);
         //页面层
         layui.layer.open({
             type: 1,
@@ -431,6 +452,8 @@
             content: '<div style="text-align:center"><img src="' + layui.$(t).attr('src') + '" /></div>'
         });
     }
+
+
     function randomn() {
         var day2 = new Date();
         day2.setTime(day2.getTime());

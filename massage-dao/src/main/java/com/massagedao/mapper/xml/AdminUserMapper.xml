@@ -28,6 +28,9 @@
         <if test="userId!=null and userId!=''">
             and parent_id = #{userId}
         </if>
+        <if test="isPrivate != null and isPrivate != ''">
+            and is_private = #{isPrivate}
+        </if>
     </select>
     <delete id="deleteBusiness">
         delete from tbl_user
@@ -35,9 +38,9 @@
     </delete>
     <insert id="businessAdd">
         insert into tbl_user
-                (user_id,user_name,user_type,address,phone,`password`,teacher_type,provincial_id,parent_id)
+                (user_id,user_name,user_type,address,phone,`password`,teacher_type,provincial_id,parent_id,is_private)
         value
-              (replace(uuid(),'-',''),#{businessDTO.userName} ,#{businessDTO.type} ,#{businessDTO.address} ,#{businessDTO.phone} ,#{businessDTO.password} ,#{businessDTO.teacherType},#{businessDTO.id},#{businessDTO.userId})
+              (replace(uuid(),'-',''),#{businessDTO.userName} ,#{businessDTO.type} ,#{businessDTO.address} ,#{businessDTO.phone} ,#{businessDTO.password} ,#{businessDTO.teacherType},#{businessDTO.id},#{businessDTO.userId},#{businessDTO.isPrivate})
     </insert>
     <update id="updateBusiness">
         update tbl_user
@@ -286,6 +289,13 @@
         </set>
         where id = #{id}
     </update>
+    <update id="updatePrivate">
+        update tbl_user
+        <set>
+            is_private = 1
+        </set>
+        where user_id = #{userId}
+    </update>
 
     <delete id="deleteOrder">
         delete from tbl_order
@@ -319,6 +329,36 @@
     <select id="findRangeList" resultType="com.massagecommon.entity.RangeDTO">
         select id,max_price as maxPrice,min_price as minPrice,total_times as totalTimes,every_time as everyTime,`name` from tbl_price_range
         where provincial_id = #{id}
+    </select>
+    <resultMap id="find" type="com.massagecommon.model.ExternalUser">
+        <result column="device_number" property="device_number"/>
+        <result column="scheme_code" property="scheme_code"/>
+        <result column="scheme_name" property="scheme_name"/>
+        <result column="total_number" property="total_number"/>
+        <result column="total_time" property="total_time"/>
+        <result column="did_number" property="did_number"/>
+        <result column="state" property="state"/>
+        <result column="amount" property="amount"/>
+        <result column="remarks" property="remarks"/>
+        <result column="create_time" property="create_time"/>
+        <result column="name" property="name"/>
+        <result column="phone" property="phone"/>
+    </resultMap>
+    <select id="findPrivateOrder" resultMap="find">
+        select order_id,device_number,scheme_code,scheme_name,total_number,total_time,did_number,
+        state,teacher_id,amount,remarks,create_time,user_id,name,phone from tbl_private_order
+         <where>
+             device_number in
+             <foreach collection="id" item="id" index="index" separator="," open="(" close=")">
+                 #{id}
+             </foreach>
+             <if test='orderName != null and orderName != ""'>
+                 and scheme_name like concat('%',#{orderName} ,'%')
+             </if>
+             <if test='projectName != null and projectName != ""'>
+                 and name like concat('%',#{projectName} ,'%')
+             </if>
+    </where>
     </select>
 
 </mapper>

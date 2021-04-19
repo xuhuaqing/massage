@@ -20,4 +20,7 @@ public class ExternalUser {
     private String total_time;
     private String did_number;
     private String state;
+    private String create_time;
+    private String amount;
+    private String remarks;
 }

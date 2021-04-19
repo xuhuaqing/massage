@@ -58,4 +58,40 @@ public interface ExternalService {
     * @Date:  
     */
     String getEqListByBusinessId(String businessId);
+
+    /** 
+    * @Description: 根据用户id 获取订单
+    * @Param:  
+    * @return:  
+    * @Author: wushuang
+    * @Date:  
+    */
+    String getBusinessByUserId(String userName, String userPhone);
+
+    /**
+    * @Description:  根据用户id 获取设备
+    * @Param:
+    * @return:
+    * @Author: wushuang
+    * @Date:
+    */
+    String getEqListByUserId(String userId);
+
+    /**
+    * @Description:   根据用户id 获取订单
+    * @Param:
+    * @return:
+    * @Author: wushuang
+    * @Date:
+    */
+    String getOrderByUserId(String userId, String type, Integer page);
+
+    /**
+    * @Description:   顾客点击哦我要美丽按钮
+    * @Param:
+    * @return:
+    * @Author: wushuang
+    * @Date:
+    */
+    String woyaomeili(String eqId, String userId, String orderId);
 }

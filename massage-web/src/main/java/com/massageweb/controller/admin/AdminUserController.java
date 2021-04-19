@@ -127,8 +127,8 @@ public class AdminUserController {
      * @date 2:07
      */
     @PostMapping("findBusinessManage")
-    public String findBusinessManage(Integer page,Integer pageSize , Integer type,@RequestParam(value = "agentId",required = false) String agentId,@RequestParam(value = "teacherType",required = false) String teacherType,@RequestParam(value = "userId",required = false) String userId){
-        return adminUserService.findBusinessManage(page,pageSize,type,agentId,teacherType,userId);
+    public String findBusinessManage(Integer page,Integer pageSize , Integer type,@RequestParam(value = "agentId",required = false) String agentId,@RequestParam(value = "teacherType",required = false) String teacherType,@RequestParam(value = "userId",required = false) String userId,@RequestParam(value = "isPrivate",required = false) String isPrivate){
+        return adminUserService.findBusinessManage(page,pageSize,type,agentId,teacherType,userId,isPrivate);
     }
 
     /**
@@ -317,8 +317,8 @@ public class AdminUserController {
      * @date 0:11
      */
     @PostMapping("findOrder")
-    public String findOrder(String orderName,Integer page,Integer pageSize,String userId,@RequestParam(value = "projectName",required = false) String projectName){
-        return adminUserService.findOrder(orderName,page,pageSize,userId,projectName);
+    public String findOrder(String orderName,Integer page,Integer pageSize,String userId,@RequestParam(value = "projectName",required = false) String projectName, @RequestParam(value = "isPrivate",required = false) Integer isPrivate){
+        return adminUserService.findOrder(orderName,page,pageSize,userId,projectName,isPrivate);
 
     }
 
@@ -436,5 +436,24 @@ public class AdminUserController {
     @PostMapping("updateRange")
     public String updateRange(String id,String value,String field){
         return adminUserService.updateRange(id,value,field);
+    }
+
+    @PostMapping("updatePrivate")
+    public String updatePrivate(String userId){
+        return adminUserService.updatePrivate(userId);
+
+    }
+
+    @PostMapping("findPrivateEquipment")
+    public String findPrivateEquipment(Integer page){
+        return adminUserService.findPrivateEquipment(page);
+    }
+    @PostMapping("startEq")
+    public String startEq(String device_number ,String status){
+        return adminUserService.startEq(device_number,status);
+    }
+    @PostMapping("privateAddEquipment")
+    public String privateAddEquipment(String equipmentId,String userName){
+        return adminUserService.privateAddEquipment(equipmentId,userName);
     }
 }

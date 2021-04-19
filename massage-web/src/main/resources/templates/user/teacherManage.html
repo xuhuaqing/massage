@@ -32,6 +32,7 @@
                     </form>
                     <table class="layui-hide" id="test-table-autowidth" lay-filter="test-table-autowidth"></table>
                     <script type="text/html" id="barDemo">
+                        <a class="layui-btn layui-btn-mini" lay-event="private">允许登陆麦澜德</a>
                         <a class="layui-btn layui-btn-danger layui-btn-mini" lay-event="del">删除</a>
                         <a class="layui-btn layui-btn-mini" lay-event="edit">编辑</a>
                     </script>
@@ -252,6 +253,21 @@
                     layui.$.ajax({
                         type: 'POST',
                         url: layui.data(layui.setter.tableName)['admin_host'] + '/admin/user/deleteBusiness?userId=' + userId,
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        data: null,
+                        success: function (resp) {
+                            showElement(1, 10);
+                        }
+                    });
+                    layui.layer.close(index);
+                });
+            } else if (obj.event === 'private') {
+                layer.confirm('确认允许吗?', function (index) {
+                    layui.$.ajax({
+                        type: 'POST',
+                        url: layui.data(layui.setter.tableName)['admin_host'] + '/admin/user/updatePrivate?userId=' + userId,
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded'
                         },

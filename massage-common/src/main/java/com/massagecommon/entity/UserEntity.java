@@ -37,7 +37,7 @@ public class UserEntity {
     /**
      * 1 是私密账号登陆
      */
-    private Integer isPrivate;
+    private Integer isPrivate = 0;
 
 
 }

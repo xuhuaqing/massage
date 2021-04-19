@@ -31,6 +31,7 @@
                     <script type="text/html" id="barDemo">
                         <a class="layui-btn layui-btn-danger layui-btn-mini" lay-event="del">删除</a>
                         <a class="layui-btn layui-btn-mini" lay-event="edit">编辑</a>
+                        <a class="layui-btn layui-btn-mini" lay-event="private">允许登陆麦澜德</a>
                     </script>
                     <div id="test-lpage"></div>
                 </div>
@@ -274,6 +275,21 @@
                         body.contents().find("#phone").val(phone);
                         body.contents().find("#password").val(password);
                     }
+                });
+            } else if (obj.event === 'private') {
+                layer.confirm('确认允许吗?', function (index) {
+                    layui.$.ajax({
+                        type: 'POST',
+                        url: layui.data(layui.setter.tableName)['admin_host'] + '/admin/user/updatePrivate?userId=' + userId,
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        data: null,
+                        success: function (resp) {
+                            showElement(1, 10);
+                        }
+                    });
+                    layui.layer.close(index);
                 });
             }
         });

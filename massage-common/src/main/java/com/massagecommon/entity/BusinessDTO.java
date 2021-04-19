@@ -31,4 +31,6 @@ public class BusinessDTO {
     private String id;
 
     private String provincialId;
+
+    private Integer isPrivate = 0;
 }

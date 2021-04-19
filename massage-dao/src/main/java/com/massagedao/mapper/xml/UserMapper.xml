@@ -27,9 +27,9 @@
 
     <insert id="register3">
         insert into tbl_user
-                (user_id,user_name,user_type,phone,open_id)
+                (user_id,user_name,user_type,phone,open_id,is_private)
         value
-              (#{userEntity.userId},#{userEntity.userName} ,0,#{userEntity.userPhone} ,'111');
+              (#{userEntity.userId},#{userEntity.userName} ,0,#{userEntity.userPhone} ,'111',1);
     </insert>
     <select id="findOrder" resultType="com.massagecommon.entity.UserOrderEntity">
         select number_id as numberId, order_id as orderId, order_name as orderName, order_type as orderType,price as price,total_times as totalTimes,times as times,DATE_FORMAT(create_time,'%Y-%m-%d') as createTime , parent_id AS parentId
@@ -78,7 +78,7 @@
     </insert>
     <!--/*  and open_id = #{userEntity.openId}*/-->
     <select id="loginTeacher" resultType="com.massagecommon.entity.UserEntity">
-        select user_id,user_name,phone,teacher_type as teacherType , provincial_id as provincialId from tbl_user
+        select user_id,user_name,phone,teacher_type as teacherType , provincial_id as provincialId ,is_private as isPrivate from tbl_user
         where phone = #{userEntity.userPhone} and password = #{userEntity.password} and user_type = #{userEntity.type}
     </select>
     <update id="sendOrder">
@@ -139,4 +139,11 @@
         and phone like concat('%',right(#{userEntity.userPhone,jdbcType=VARCHAR} , 4))
         and user_type = 0
     </update>
+
+    <select id="isRegister5" resultType="com.massagecommon.entity.UserEntity">
+        select open_id as openId,user_id as userId,user_name as userName,phone as userPhone from tbl_user where user_name = #{userEntity.userName,jdbcType=VARCHAR}
+                                                                                          and phone like concat('%',right(#{userEntity.userPhone,jdbcType=VARCHAR} , 4))
+                                                                                          and user_type = 0
+        limit 1
+    </select>
 </mapper>

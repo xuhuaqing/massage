@@ -15,7 +15,7 @@ public interface AdminUserService {
 
     String changePassword(String oldPassword, String password, String rePassword);
 
-    String findBusinessManage(Integer page, Integer pageSize, Integer type,String agentId,String teacherType,String  userId);
+    String findBusinessManage(Integer page, Integer pageSize, Integer type, String agentId, String teacherType, String userId, String isPrivate);
 
     String deleteBusiness(String userId);
 
@@ -41,7 +41,7 @@ public interface AdminUserService {
 
     String updEquipment(EquipmentEntity.EquipmentDTO equipmentDTO);
 
-    String findOrder(String orderName, Integer page, Integer pageSize, String userId, String projectName);
+    String findOrder(String orderName, Integer page, Integer pageSize, String userId, String projectName, Integer isPrivate);
 
     String exportExcelByUser(String[] id);
 
@@ -63,4 +63,12 @@ public interface AdminUserService {
     String findRangeList(Integer page, Integer pageSize, String id);
 
     String updateRange(String id, String value, String field);
+
+    String updatePrivate(String userId);
+
+    String findPrivateEquipment(Integer page);
+
+    String startEq(String device_number, String status);
+
+    String privateAddEquipment(String equipmentId, String userName);
 }

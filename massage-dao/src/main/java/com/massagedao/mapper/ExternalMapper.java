@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface ExternalMapper {
     /**
@@ -72,4 +73,83 @@ public interface ExternalMapper {
     * @Date:
     */
     List<Map<String, String>> getEqListBydeviceNumber(@Param("device_number") String device_number);
+
+    /**
+    * @Description: 获取设备 根据用户id
+    * @Param:
+    * @return:
+    * @Author: wushuang
+    * @Date:
+    */
+    Set<String> getEqByUserId(@Param("userId") String userId);
+
+    /**
+    * @Description: 根据设备id 查询商家名称 和id
+    * @Param:
+    * @return:
+    * @Author: wushuang
+    * @Date:
+    */
+    List<Map<String, String>> findBusinessName(@Param("id") Set<String> eqIds);
+
+    /**
+    * @Description:   获取 显示id
+    * @Param:
+    * @return:
+    * @Author: wushuang
+    * @Date:
+    */
+    List<Map<String, String>> getEqShowIdByEqId(@Param("id") Set<String> eqByUserId);
+
+    /**
+    * @Description:  显示已消耗订单
+    * @Param:
+    * @return:
+    * @Author: wushuang
+    * @Date:
+    */
+    Page<Map<String, String>> getConsumedOrder(@Param("userId") String userId);
+    Page<Map<String, String>> getNotConsumedOrder(@Param("userId") String userId);
+
+    /**
+    * @Description: 设备状态
+    * @Param:
+    * @return:
+    * @Author: wushuang
+    * @Date:
+    */
+    Integer eqStatus(@Param("eqId") String eqId);
+
+    /**
+    * @Description:   获取订单次数
+    * @Param:
+    * @return:
+    * @Author: wushuang
+    * @Date:
+    */
+    Integer getNotConsumedOrderCount(@Param("userId") String userId, @Param("orderId") String orderId);
+
+    /**
+    * @Description:  订单的code
+    * @Param:
+    * @return:
+    * @Author: wushuang
+    * @Date:
+    */
+    String findDeviceNumber(@Param("orderId") String orderId);
+
+    /**
+    * @Description: 修改订单次数
+    * @Param:
+    * @return:
+    * @Author: wushuang
+    * @Date:
+    */
+    void updateDidNumber(@Param("userId") String userId, @Param("orderId") String orderId);
+
+
+    String getBusinessNameByEqId(@Param("device_number") String device_number);
+
+
+    void privateAddEquipment(@Param("equipmentId") String equipmentId, @Param("userName") String userName);
 }

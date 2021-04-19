@@ -1,26 +1,28 @@
 package com.massageservice.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.massagecommon.entity.*;
+import com.massagecommon.model.ExternalModel;
+import com.massagecommon.model.ExternalUser;
 import com.massagecommon.util.*;
 import com.massagedao.mapper.AdminUserMapper;
 import com.massagedao.mapper.BusinessMapper;
+import com.massagedao.mapper.ExternalMapper;
 import com.massageservice.service.AdminUserService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.massagecommon.constant.Constants.*;
@@ -40,7 +42,8 @@ public class AdminUserServiceImpl implements AdminUserService
     private AdminUserMapper adminUserMapper;
     @Autowired
     private BusinessMapper businessMapper;
-
+    @Autowired
+    private ExternalMapper externalService;
     @Autowired
     private RedisUtil redisUtil;
 
@@ -73,9 +76,9 @@ public class AdminUserServiceImpl implements AdminUserService
     }
 
     @Override
-    public String findBusinessManage(Integer page, Integer pageSize, Integer type,String agentId,String teacherType,String userId) {
+    public String findBusinessManage(Integer page, Integer pageSize, Integer type, String agentId, String teacherType, String userId, String isPrivate) {
         PageHelper.startPage(page,pageSize);
-        Page<BusinessDTO> mapUserEntities =  adminUserMapper.findBusinessManage(type,agentId,teacherType,userId);
+        Page<BusinessDTO> mapUserEntities =  adminUserMapper.findBusinessManage(type,agentId,teacherType,userId,isPrivate);
         return ResponseUtil.toClient(SUCCESS_ADMIN_CODE + "", SUCCESS_MSG, mapUserEntities, new HashMap<String,Object>(1) {
             {
                 put("count", mapUserEntities.getTotal());
@@ -273,7 +276,23 @@ public class AdminUserServiceImpl implements AdminUserService
     }
 
     @Override
-    public String findOrder(String orderName, Integer page, Integer pageSize, String userId, String projectName) {
+    public String findOrder(String orderName, Integer page, Integer pageSize, String userId, String projectName, Integer isPrivate) {
+        if(Objects.equals(isPrivate,1)){
+            List<Map<String, String>> businessEqList = externalService.getBusinessEqList(userId);
+            if(CollectionUtils.isEmpty(businessEqList)){
+                return ResponseUtil.toClient(SUCCESS_ADMIN_CODE + "", SUCCESS_MSG);
+             }
+            List<String> device_number = businessEqList.stream().map(
+                    s -> s.get("device_number")
+            ).collect(Collectors.toList());
+            PageHelper.startPage(page,pageSize);
+            Page<ExternalUser> mapUserEntities =  adminUserMapper.findPrivateOrder(orderName,userId,projectName,device_number);
+            return ResponseUtil.toClient(SUCCESS_ADMIN_CODE + "", SUCCESS_MSG, mapUserEntities, new HashMap<String,Object>(1) {
+                {
+                    put("count", mapUserEntities.getTotal());
+                }
+            });
+        }
         PageHelper.startPage(page,pageSize);
         Page<OrderEntity> mapUserEntities =  adminUserMapper.findOrder(orderName,userId,projectName);
         return ResponseUtil.toClient(SUCCESS_ADMIN_CODE + "", SUCCESS_MSG, mapUserEntities, new HashMap<String,Object>(1) {
@@ -396,4 +415,88 @@ public class AdminUserServiceImpl implements AdminUserService
         return null;
     }
 
+    @Override
+    public String updatePrivate(String userId) {
+        adminUserMapper.updatePrivate(userId);
+        return ResponseUtil.toClient(SUCCESS_ADMIN_CODE + "", SUCCESS_MSG);
+    }
+    private final static String testUrl = "https://api-ck-test.medlander.com";
+
+    @Override
+    public String findPrivateEquipment(Integer page) {
+        long time = System.currentTimeMillis() / 1000;
+        String replace = UUID.randomUUID().toString().replace("-", "");
+        String replace1 = UUID.randomUUID().toString().replace("-", "");
+        TreeMap<String, Object> params = new TreeMap<>();
+        params.put("page", page);
+        ExternalModel externalModel = getString(time, replace, replace1, params, testUrl + "/jlapi/external/device_list");
+        if (!ExternalModel.isSucc(externalModel.getCode())) {
+            return ResponseUtil.errorMsgToClient(externalModel.getNote());
+        }
+        Object data = externalModel.getData();
+        Map maps = JSON.parseObject(data.toString(), Map.class);
+        Object list = maps.get("list");
+        List<Map> maps1 = JSON.parseArray(list.toString(), Map.class);
+        for (Map map : maps1) {
+            String device_number = (String) map.get("device_number");
+           String name =  externalService.getBusinessNameByEqId(device_number);
+           if(StringUtils.isBlank(name)){
+               map.put("name","无商家！");
+           }else {
+               map.put("name",name);
+           }
+        }
+        return ResponseUtil.toClient(SUCCESS_ADMIN_CODE + "", SUCCESS_MSG, maps1);
+    }
+
+    @Override
+    public String startEq(String device_number, String status) {
+        if(Objects.equals(status,"1")){
+            long time = System.currentTimeMillis() / 1000;
+            String replace = UUID.randomUUID().toString().replace("-", "");
+            String replace1 = UUID.randomUUID().toString().replace("-", "");
+            TreeMap<String, Object> params = new TreeMap<>();
+            params.put("device_code", device_number);
+            params.put("authorization_required",1);
+            params.put("expire_time",String.valueOf(new Date().getTime()/1000));
+            ExternalModel externalModel = getString(time, replace, replace1, params, testUrl + "/external/set-device-auth");
+            if (!ExternalModel.isSucc(externalModel.getCode())) {
+                return ResponseUtil.errorMsgToClient(externalModel.getNote());
+            }
+        } else if(Objects.equals(status,"0")){
+            long time = System.currentTimeMillis() / 1000;
+            String replace = UUID.randomUUID().toString().replace("-", "");
+            String replace1 = UUID.randomUUID().toString().replace("-", "");
+            TreeMap<String, Object> params = new TreeMap<>();
+            params.put("device_code", device_number);
+            params.put("authorization_required",0);
+            ExternalModel externalModel = getString(time, replace, replace1, params, testUrl + "/external/set-device-auth");
+            if (!ExternalModel.isSucc(externalModel.getCode())) {
+                return ResponseUtil.errorMsgToClient(externalModel.getNote());
+            }
+        }
+        return ResponseUtil.toClient(SUCCESS_ADMIN_CODE + "", SUCCESS_MSG);
+    }
+
+    @Override
+    public String privateAddEquipment(String equipmentId, String userName) {
+        List<Map<String, String>> businessEqList = externalService.getBusinessEqList(userName);
+        for (Map<String, String> stringStringMap : businessEqList) {
+            String device_number = stringStringMap.get("device_number");
+            if(Objects.equals(device_number,equipmentId)){
+                return ResponseUtil.toClient(ERROR_OPERATION_CODE + "", "该设备已有商家！");
+            }
+        }
+        externalService.privateAddEquipment(equipmentId,userName);
+        return ResponseUtil.toClient(SUCCESS_ADMIN_CODE + "", SUCCESS_MSG);
+    }
+
+    private ExternalModel getString(long time, String replace, String replace1, TreeMap<String, Object> params, String s2) {
+        String sign = SignUtils.getSign(params, time, replace, replace1);
+        params.put("sign", sign);
+        String s = HttpRequestUtil.httpPost(s2, JSON.toJSONString(params));
+        System.err.println("设备返回："+s);
+        ExternalModel externalModel = ExternalModel.parse(s);
+        return externalModel;
+    }
 }

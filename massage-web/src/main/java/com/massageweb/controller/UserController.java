@@ -1,7 +1,5 @@
 package com.massageweb.controller;
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.massagecommon.entity.*;
@@ -9,14 +7,8 @@ import com.massagecommon.util.ResponseUtil;
 import com.massagedao.mapper.AdminUserMapper;
 import com.massagedao.mapper.EquipmentMapper;
 import com.massagedao.mapper.ExternalMapper;
-import com.massageservice.service.AdminUserService;
-import com.massageservice.service.EquipmentService;
-import com.massageservice.service.ExternalService;
 import com.massageservice.service.UserService;
-import com.massageweb.common.AuthUtil;
 import lombok.extern.slf4j.Slf4j;
-import me.chanjar.weixin.common.api.WxConsts;
-import me.chanjar.weixin.mp.api.WxMpService;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -25,16 +17,13 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
-import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 import static com.massagecommon.constant.MsgConstant.MSG_001008;
@@ -194,10 +183,15 @@ public class UserController {
             if(userEntity1 == null){
                 return ResponseUtil.errorMsgToClient(MSG_001008,"密码不对！");
             }
+            if (userEntity.getIsPrivate() == 1){
+                if(!Objects.equals(1,userEntity1.getIsPrivate())){
+                    return ResponseUtil.errorMsgToClient("您未授权！无法登陆！");
+                }
+            }
             if(userEntity1.getTeacherType() == 1){
                 String provincialId = userEntity1.getProvincialId();
                 Page<BusinessDTO> businessManage =
-                        adminUserMapper.findBusinessManage(1, provincialId, null, null);
+                        adminUserMapper.findBusinessManage(1, provincialId, null, null, "0");
                 List<String> collect = businessManage.getResult().stream().map(
                         BusinessDTO::getUserId
                 ).collect(Collectors.toList());
@@ -214,6 +208,11 @@ public class UserController {
             UserEntity userEntity1 = userService.loginTeacher(userEntity);
             if(userEntity1 == null){
                 return ResponseUtil.errorMsgToClient(MSG_001008,"密码不对！");
+            }
+            if (userEntity.getIsPrivate() == 1){
+                if(!Objects.equals(1,userEntity1.getIsPrivate())){
+                    return ResponseUtil.errorMsgToClient("您未授权！无法登陆！");
+                }
             }
             userEntity1.setBusinessId(userEntity.getBusinessId());
             userEntity1.setEquipmentId(userEntity.getEquipmentId());

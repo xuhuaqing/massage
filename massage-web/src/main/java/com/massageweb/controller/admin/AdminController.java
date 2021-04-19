@@ -12,9 +12,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping(value = "/admin/page/")
 public class AdminController {
+
+
+    @GetMapping("privateBusinessManage")
+    private String privateBusinessManage() {
+        return "user/privateBusinessManage";
+    }
+    @GetMapping("privateEquipmentAdd")
+    private String privateEquipmentAdd() {
+        return "user/privateEquipmentAdd";
+    }
     @GetMapping("rangeList")
     private String rangeList() {
         return "user/rangeList";
+    }
+  @GetMapping("privateOrderList")
+    private String privateOrderList() {
+        return "user/privateOrderList";
+    } @GetMapping("privateEqManage")
+    private String privateEqManage() {
+        return "user/privateEqManage";
     }
 
     @GetMapping("business_provincial")

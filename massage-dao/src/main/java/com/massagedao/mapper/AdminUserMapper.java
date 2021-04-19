@@ -2,6 +2,7 @@ package com.massagedao.mapper;
 
 import com.github.pagehelper.Page;
 import com.massagecommon.entity.*;
+import com.massagecommon.model.ExternalUser;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -43,12 +44,13 @@ public interface AdminUserMapper {
      *
      * @param
      * @param type
+     * @param isPrivate
      * @return com.github.pagehelper.Page<com.massagecommon.entity.BusinessDTO>
      * @methodName findBusinessManage
      * @author WuShunag
      * @date 2:11
      */
-    Page<BusinessDTO> findBusinessManage(@Param("type") Integer type,@Param("agentId") String agentId, @Param("teacherType")String teacherType,@Param("userId")String userId);
+    Page<BusinessDTO> findBusinessManage(@Param("type") Integer type, @Param("agentId") String agentId, @Param("teacherType") String teacherType, @Param("userId") String userId,@Param("isPrivate") String isPrivate);
 
     /**
      * 删除用户
@@ -324,4 +326,10 @@ public interface AdminUserMapper {
 
 
     void updateRange(@Param("id")String id, @Param("value")String value, @Param("field")String field);
+
+
+    Page<ExternalUser> findPrivateOrder(@Param("orderName") String orderName, @Param("userId") String userId, @Param("projectName") String projectName, @Param("id") List<String> device_number);
+
+
+    void updatePrivate(String userId);
 }

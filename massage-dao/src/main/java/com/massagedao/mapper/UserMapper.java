@@ -133,6 +133,7 @@ public interface UserMapper {
 
 
     UserEntity isRegister1(@Param("userEntity") UserEntity userEntity);
+    UserEntity isRegister5(@Param("userEntity") UserEntity userEntity);
 
 
     void updateOpenId(@Param("userEntity") UserEntity userEntity);
